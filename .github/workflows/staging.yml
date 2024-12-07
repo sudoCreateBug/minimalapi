@@ -56,7 +56,7 @@ jobs:
       - name: unzip artifact
         run: unzip -o publish.zip -d ./publish
       
-      - name: 'Run Azure webapp deploy action using publish profile credentials'
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with: 
           app-name: ${{ secrets.AZURE_APP_NAME_STAGING }}
