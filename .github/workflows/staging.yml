@@ -27,7 +27,9 @@ jobs:
         run: dotnet publish -c Release -o ./publish
 
       - name: Compress build artifacts
-        run: zip -r publish.zip ./publish
+        run: |
+          cd publish
+          zip -r ../publish.zip ./*
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
@@ -58,4 +60,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with: 
           app-name: ${{ secrets.AZURE_APP_NAME_STAGING }}
-          package: ./publish/publish
+          package: ./publish
