@@ -1,0 +1,53 @@
+name: Staging CI/CD
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build application
+        run: dotnet publish -c Release -o ./publish
+
+      - name: Compress build artifacts
+        run: zip -r publish.zip ./publish
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: publish-artifact
+          path: publish.zip
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: publish-artifact
+
+      - name: Authenticate to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure
+        run: |
+          az webapp deploy --resource-group ${{ secrets.AZURE_RESOURCE_GROUP_STAGING }} \
+          --name ${{ secrets.AZURE_APP_NAME_STAGING }} \
+          --src-path ./publish.zip --type zip
